@@ -2,13 +2,11 @@
 and may not be redistributed without written permission.*/
 
 //Using SDL and standard IO
-#include <SDL2/SDL.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdio.h>
+
 #include "bitmap.h"
 #include "bittypes.h"
 #include "Bmp_loader.h"
+#include "main_SDL.h"
 
 
 
@@ -31,8 +29,11 @@ SDL_Surface* gScreenSurface = NULL;
 //The image we will load and show on the screen
 SDL_Surface* gHelloWorld = NULL;
 //MyPixelmap
-SDL_Surface *RGBpixelmap = NULL;
+SDL_Surface *RGBpixelmap = (SDL_Surface*) malloc(sizeof(SDL_Surface));
 
+Tilemap *tilemap;
+
+Map *GameMap;
 
 
 bool init() {
@@ -61,7 +62,9 @@ bool init() {
 bool loadMedia() {
 	//Loading success flag
 	bool success = true;
-	int offset;
+	long offset;
+	int *w = (int *) malloc(sizeof(int));
+	int *h  = (int *) malloc(sizeof(int));
 	//Load splash image
 	gHelloWorld = SDL_LoadBMP("hello_world.bmp");
 	if( gHelloWorld == NULL ) {
@@ -72,18 +75,75 @@ bool loadMedia() {
 
 
   RGBpixelmap = load_bmp_to_sdl("lena.bmp");
-	//int load_tile_to_sdl(const char* filepath,int offset,SDL_Surface *surface)
-	offset = load_tile_to_sdl("Planes01.bmp",0,RGBpixelmap);
+	//int load_tile_to_sdl(SDL_Surface *surface,const char* filepath,int offset,int num)
+	//offset = load_tile_to_sdl(RGBpixelmap,"Planes01.bmp",0,1,w,h);
+	tilemap = load_tilemap("Planes01.bmp",0,1);
 	printf("OFFSET: %i\n",offset);
-
 	printf("loadMedia successfull!\n");
 
 	return success;
 }
 
+bool loadMap(char *filepath,int *mapsize){
+	int deb;
+	int i;
+	long index;
+	bool success = true;
+  bitmapRGB *input = (bitmapRGB *) malloc(sizeof(bitmapRGB));
+	deb = loadBitmapRGB(filepath, input);
+  if (deb != BMP_OK) {
+      printf("Fehler beim Laden");
+      return 0;
+  }
+	GameMap = (Map *) malloc(input->width*input->height*sizeof(Map));
+	for(i = 0; i < input->width*input->height;i++){
+		index = input->pixel[i].red*1000000+input->pixel[i].green*1000+input->pixel[i].blue;
+	}
+	return success;
+}
+
+//CSurface::OnDraw(Surf_Display, Surf_Test, 100, 100, 0, 0, 50, 50);
+bool bindsurface(SDL_Surface* Surf_Dest, SDL_Surface* Surf_Src, int X, int Y, int X2, int Y2, int W, int H) {
+    if(Surf_Dest == NULL || Surf_Src == NULL) {
+        return false;
+    }
+    SDL_Rect DestR;
+    DestR.x = X;
+    DestR.y = Y;
+    SDL_Rect SrcR;
+    SrcR.x = X2;
+    SrcR.y = Y2;
+    SrcR.w = W;
+    SrcR.h = H;
+    SDL_BlitSurface(Surf_Src, &SrcR, Surf_Dest, &DestR);
+    return true;
+}
+
+
+
+bool renderMap(){
+		int i;
+		int x = 0;
+		int y = 0;
+		for(i=0;i< tilemap->am;i++){
+			bindsurface(RGBpixelmap, tilemap->tile[i]->surface, x, y, 0, 0, tilemap->tile[i]->w, tilemap->tile[i]->h);
+			x += tilemap->tile[i]->w;
+			if(x > 640){
+				x = 0;
+				y += 64;
+			}
+			if(y >600){
+				printf("Screen warning!\n");
+			}
+		}
+		printf("Rendermap Laoded!\n");
+		return true;
+}
+
 void close() {
 	//Deallocate surface
-	SDL_FreeSurface( gHelloWorld ); gHelloWorld = NULL;
+	SDL_FreeSurface( gHelloWorld );
+	gHelloWorld = NULL;
 	//Destroy window
 	SDL_DestroyWindow( gWindow );
 	gWindow = NULL;
@@ -107,11 +167,13 @@ int main( int argc, char* args[] )
 	 	} else {
 		//Apply the image
 		//SDL_BlitSurface( gHelloWorld, NULL, gScreenSurface, NULL );
+		// renderMap();
 		SDL_BlitSurface( RGBpixelmap, NULL, gScreenSurface, NULL );
+		//SDL_BlitSurface(tilemap->tile[0]->surface, NULL, gScreenSurface, NULL );
 		//Update the surface
 		SDL_UpdateWindowSurface( gWindow );
 		//Wait two seconds
-		SDL_Delay( 20000 );
+		SDL_Delay( 2000 );
 		}
 	}
 	//Free resources and close SDL
