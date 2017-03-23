@@ -30,6 +30,7 @@ SDL_Surface* gScreenSurface = NULL;
 SDL_Surface* gHelloWorld = NULL;
 //MyPixelmap
 SDL_Surface *RGBpixelmap = (SDL_Surface*) malloc(sizeof(SDL_Surface));
+SDL_Surface* gMapSurface = NULL;
 
 Tilemap *tilemap;
 
@@ -52,6 +53,7 @@ bool init() {
 		} else {
 			//Get window surface
 			gScreenSurface = SDL_GetWindowSurface( gWindow );
+			gMapSurface = SDL_GetWindowSurface( gWindow );
 		}
 	}
 	return success;
@@ -110,6 +112,8 @@ bool bindsurface(SDL_Surface* Surf_Dest, SDL_Surface* Surf_Src, int X, int Y, in
     SDL_Rect DestR;
     DestR.x = X;
     DestR.y = Y;
+		DestR.w = W;
+    DestR.h = H;
     SDL_Rect SrcR;
     SrcR.x = X2;
     SrcR.y = Y2;
@@ -126,7 +130,8 @@ bool renderMap(){
 		int x = 0;
 		int y = 0;
 		for(i=0;i< tilemap->am;i++){
-			bindsurface(RGBpixelmap, tilemap->tile[i]->surface, x, y, 0, 0, tilemap->tile[i]->w, tilemap->tile[i]->h);
+			bindsurface(gMapSurface, tilemap->tile[i]->surface, x, y, 0, 0, tilemap->tile[i]->w, tilemap->tile[i]->h);
+			printf("Placed by: %i,%i\n",x,y);
 			x += tilemap->tile[i]->w;
 			if(x > 640){
 				x = 0;
@@ -144,6 +149,8 @@ void close() {
 	//Deallocate surface
 	SDL_FreeSurface( gHelloWorld );
 	gHelloWorld = NULL;
+	SDL_FreeSurface( gMapSurface );
+	gMapSurface = NULL;
 	//Destroy window
 	SDL_DestroyWindow( gWindow );
 	gWindow = NULL;
@@ -167,9 +174,14 @@ int main( int argc, char* args[] )
 	 	} else {
 		//Apply the image
 		//SDL_BlitSurface( gHelloWorld, NULL, gScreenSurface, NULL );
-		// renderMap();
-		SDL_BlitSurface( RGBpixelmap, NULL, gScreenSurface, NULL );
-		//SDL_BlitSurface(tilemap->tile[0]->surface, NULL, gScreenSurface, NULL );
+		renderMap();
+		//SDL_BlitSurface( RGBpixelmap, NULL, gScreenSurface, NULL );
+		//SDL_BlitSurface(gMapSurface, NULL, gScreenSurface, NULL );
+		// SDL_Rect DestR;
+    // DestR.x = 100;
+    // DestR.y = 100;
+		// SDL_BlitSurface(tilemap->tile[0]->surface, NULL, gScreenSurface, &DestR);
+		// SDL_BlitSurface(tilemap->tile[0]->surface, NULL, gScreenSurface, NULL);
 		//Update the surface
 		SDL_UpdateWindowSurface( gWindow );
 		//Wait two seconds
