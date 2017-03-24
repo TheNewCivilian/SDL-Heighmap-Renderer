@@ -73,7 +73,7 @@ long load_tile_to_sdl(SDL_Surface *surface,const char* filepath,long offset,int 
 				!(input->pixel[i+input->width].blue == 255 && input->pixel[i+input->width].red == 255 && input->pixel[i+input->width].green == 255)&&
 				!(input->pixel[i+input->width+1].blue == 255 && input->pixel[i+input->width+1].red == 255 && input->pixel[i+input->width+1].green == 255)){
 	      start = i;
-	      printf("Start bei: [%i][%i] \n",start-(start/input->width)*input->width,start/input->width);
+	      //printf("Start bei: [%i][%i] \n",start-(start/input->width)*input->width,start/input->width);
 	      break;
 	    }
 	  }
@@ -87,7 +87,7 @@ long load_tile_to_sdl(SDL_Surface *surface,const char* filepath,long offset,int 
   for(i = start;i<(start/input->width+1)*input->width;i++){
     if(input->pixel[i].blue == 255 && input->pixel[i].red == 255&& input->pixel[i].green == 255){
       pw = i-start-1;
-      printf("Breite: %i \n",pw);
+      //printf("Breite: %i \n",pw);
       break;
     }
   }
@@ -99,7 +99,7 @@ long load_tile_to_sdl(SDL_Surface *surface,const char* filepath,long offset,int 
   for(i = start;i<input->width*input->height;i+=input->width){
     if(input->pixel[i].blue == 255 && input->pixel[i].red == 255&& input->pixel[i].green == 255){
       ph = (i-start)/input->width;
-      printf("Hoehe: %i \n",ph);
+      //printf("Hoehe: %i \n",ph);
       break;
     }
   }
@@ -119,16 +119,17 @@ long load_tile_to_sdl(SDL_Surface *surface,const char* filepath,long offset,int 
       y = i;
       x = j;
       if (input->pixel[start+i*input->width+j].blue == 255 && input->pixel[start+i*input->width+j].red == 0&& input->pixel[start+i*input->width+j].green == 0){
-        set_pixel(RGBpixelmap, x, y,SDL_MapRGBA(fmt,0,0,0,255));
+        set_pixel(RGBpixelmap, x, y,SDL_MapRGBA(fmt,0,0,0,200));
+				//Muss Alpha sein
       }else{
-        set_pixel(RGBpixelmap, x, y,  SDL_MapRGB(fmt,input->pixel[start+i*input->width+j].red,input->pixel[start+i*input->width+j].green,input->pixel[start+i*input->width+j].blue));
+        set_pixel(RGBpixelmap, x, y,  SDL_MapRGBA(fmt,input->pixel[start+i*input->width+j].red,input->pixel[start+i*input->width+j].green,input->pixel[start+i*input->width+j].blue,128));
         //printf("Pixel[%5i][%5i][%5i] r=%i b=%i g=%i\n",i,x,y,r,b,g);
       }
     }
   }
   SDL_UnlockSurface(RGBpixelmap);
   *surface = *RGBpixelmap;
-	printf("%i %i\n",pw,ph);
+	//printf("%i %i\n",pw,ph);
 	*with = pw;
 	*heigt = ph;
   if ((int)(start+2*pw)/input->width != (int)start/input->width){
@@ -156,7 +157,7 @@ Tilemap *load_tilemap(const char* filepath,long offset,int num){
 			tile[tilemap->am]->surface = surfaces[tilemap->am];
 			tile[tilemap->am]->w = *with;
 			tile[tilemap->am]->h = *heigt;
-			printf("Gespeichert in: %i, Höhe: %i, Breite: %i\n",	tilemap->am,tile[tilemap->am]->h,tile[tilemap->am]->w);
+			//printf("Gespeichert in: %i, Höhe: %i, Breite: %i\n",	tilemap->am,tile[tilemap->am]->h,tile[tilemap->am]->w);
 			tilemap->am++;
 			surfaces = (SDL_Surface**) realloc(surfaces,(tilemap->am+1)*sizeof(SDL_Surface *));
 		}else{

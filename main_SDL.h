@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 typedef struct _maptile{
-  int index;
+  int *index;
 }Map;
 
 #endif
