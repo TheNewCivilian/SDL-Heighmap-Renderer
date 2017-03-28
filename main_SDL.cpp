@@ -1,96 +1,31 @@
-/*This source code copyrighted by Lazy Foo' Productions (2004-2015)
-and may not be redistributed without written permission.*/
-
-//Using SDL and standard IO
-
-#include "bitmap.h"
-#include "bittypes.h"
-#include "Bmp_loader.h"
 #include "main_SDL.h"
 
-
-
-
-//Starts up SDL and creates window
-bool init();
-//Loads media
-bool loadMedia();
- //Frees media and shuts down SDL
-void close();
-
-//Screen dimension constants
-const int SCREEN_WIDTH = 1080;
-const int SCREEN_HEIGHT = 1200;
-
-const int TILE_WIDTH = 64;
-const int TILE_HEIGHT = 32;
-
-//The window we'll be rendering to
-SDL_Window* gWindow = NULL;
-//The surface contained by the window
-SDL_Surface* gScreenSurface = NULL;
-//The image we will load and show on the screen
-SDL_Surface* gHelloWorld = NULL;
-//MyPixelmap
-SDL_Surface *RGBpixelmap = (SDL_Surface*) malloc(sizeof(SDL_Surface));
-SDL_Surface* gMapSurface = NULL;
-
-//Event handler
-SDL_Event e;
-
-Tilemap *tilemap;
-
-Map *GameMap;
-//Gameposition
-int GAME_X = 0;
-int GAME_Y = 0;
-
-
 bool init() {
-	//Initialization flag
-	bool success = true;
 	//Initialize SDL
 	if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
 		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
-		success = false;
+		return false;
 	} else {
 		//Create window
 		gWindow = SDL_CreateWindow( "TileMapRenderer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
 		if( gWindow == NULL ) {
 			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
-			success = false;
+			return false;
 		} else {
-			//Get window surface
-			gScreenSurface = SDL_GetWindowSurface( gWindow );
-			gMapSurface = SDL_GetWindowSurface( gWindow );
+			render = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	    if (render == NULL) {
+	        printf( "Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+	        return false;
+	    }
 		}
 	}
-	return success;
+	return true;
 }
 
-
-
 bool loadMedia() {
-	//Loading success flag
-	bool success = true;
-	long offset;
-	//Load splash image
-	gHelloWorld = SDL_LoadBMP("hello_world.bmp");
-	if( gHelloWorld == NULL ) {
-		printf( "Unable to load image %s! SDL Error: %s\n", "hello_world.bmp", SDL_GetError() );
-		success = false;
-	}
-	//Loading NEW_RGBPixelmap
-
-
-  RGBpixelmap = load_bmp_to_sdl("lena.bmp");
-	//int load_tile_to_sdl(SDL_Surface *surface,const char* filepath,int offset,int num)
-	//offset = load_tile_to_sdl(RGBpixelmap,"Planes01.bmp",0,1,w,h);
-	tilemap = load_tilemap("BaseMaptiles.bmp",0,1);
-	printf("OFFSET: %i\n",offset);
+	tilemap2 = load_tilemap_surface2texture("BaseMaptiles.bmp",render,0,1);
 	printf("loadMedia successfull!\n");
-
-	return success;
+	return true;
 }
 
 bool loadMap(const char *filepath,int *mapsize,int *with){
@@ -122,31 +57,166 @@ bool loadMap(const char *filepath,int *mapsize,int *with){
 	return true;
 }
 
+bool load_highMap(const char *filepath){
+	int deb;
+	int i,n;
+	bool NNO, NOO, OSO, SOS, SSW, SWW, WNW, NWN;
+	bool IN = false;
+	const int BIT_01 = 53, BIT_02 = 111, BIT_03 = 732, BIT_04 = 173, BIT_05 = 1034, BIT_07 = 1735, BIT_06 = 236, BIT_08 = 2977,INBIT = 232323;
+	// {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199 ...}
+  bitmapRGB *input = (bitmapRGB *) malloc(sizeof(bitmapRGB));
+	deb = loadBitmapRGB(filepath, input);
+  if (deb != BMP_OK) {
+      printf("Fehler beim Laden");
+      return false;
+  }
+	GameMap2 = (Heightmap *) malloc(input->width*input->height*sizeof(Heightmap));
+	GameMap2->height = (int *) malloc((input->width*input->height)*sizeof(int));
+	GameMap2->index = (int *) malloc((input->width*input->height)*sizeof(int));
+	GameMap2->hdraw = (int *) malloc((input->width*input->height)*sizeof(int));
 
-//CSurface::OnDraw(Surf_Display, Surf_Test, 100, 100, 0, 0, 50, 50);
-bool bindsurface(SDL_Surface* Surf_Dest, SDL_Surface* Surf_Src, int X, int Y, int X2, int Y2, int W, int H) {
-    if(Surf_Dest == NULL || Surf_Src == NULL) {
-        return false;
-    }
-    SDL_Rect DestR;
-    DestR.x = X;
-    DestR.y = Y;
-		DestR.w = W;
-    DestR.h = H;
-    //SDL_BlitSurface(Surf_Src, &SrcR, Surf_Dest, &DestR);
-		SDL_SetSurfaceBlendMode(Surf_Src,SDL_BLENDMODE_ADD);
-		SDL_BlitSurface(Surf_Src, NULL, Surf_Dest, &DestR);
-		return true;
+	for(i = 0; i < input->width*input->height;i++){
+		GameMap2->height[i] = input->pixel[i].red%64;
+		GameMap2->hdraw[i] = input->pixel[i].red%64;
+	}
+	for(i = 0; i < input->width*input->height;i++){
+		if (GameMap2->height[i] == 1){
+			GameMap2->index[i] = 57;
+		}else if( GameMap2->height[i] == 0 && ((i/input->width)*input->width == i || (i/input->width) == input->height-1 || (i/input->width) == 0 || (i/input->width)*input->width == i-1)){
+			GameMap2->index[i] = 137;
+		}else{
+			NNO = GameMap2->height[i-input->width-1] != GameMap2->height[i-input->width];
+			NOO = GameMap2->height[i-input->width] != GameMap2->height[i-input->width+1];
+			OSO = GameMap2->height[i-input->width+1] != GameMap2->height[i+1];
+			SOS = GameMap2->height[i+1] != GameMap2->height[i+input->width+1];
+			SSW = GameMap2->height[i+input->width+1] != GameMap2->height[i+input->width];
+			SWW = GameMap2->height[i+input->width] != GameMap2->height[i+input->width-1] ;
+			WNW = GameMap2->height[i+input->width-1] != GameMap2->height[i-1];
+			NWN = GameMap2->height[i-1] != GameMap2->height[i-input->width-1];
+			IN = false;
+			if(NNO || NOO || OSO || SOS || SSW || SWW || WNW || NWN){
+				if(NNO == true){
+					IN = GameMap2->height[i-input->width-1] < GameMap2->height[i-input->width];
+				}else if(NOO == true){
+					IN = GameMap2->height[i-input->width] < GameMap2->height[i-input->width+1];
+				}else if(OSO == true){
+					IN = GameMap2->height[i-input->width+1] < GameMap2->height[i+1];
+				}else if(SOS == true){
+					IN = GameMap2->height[i+1] < GameMap2->height[i+input->width+1];
+				}else if(SSW == true){
+					IN = GameMap2->height[i+input->width+1] < GameMap2->height[i+input->width];
+				}else if(SWW == true){
+					IN = GameMap2->height[i+input->width] < GameMap2->height[i+input->width-1];
+				}else if(WNW == true){
+					IN = GameMap2->height[i+input->width-1] < GameMap2->height[i-1];
+				}else {
+					IN = false;
+				}
+			}
+			//if((NNO || NOO || OSO || SOS || SSW || SWW || WNW || NWN)&&GameMap2->height[i] == 0){
+				switch((NNO?BIT_01:0)+(NOO?BIT_02:0)+(OSO?BIT_03:0)+(SOS?BIT_04:0)+(SSW?BIT_05:0)+(SWW?BIT_06:0)+(WNW?BIT_07:0)+(NWN?BIT_08:0)+(IN?INBIT:0)){
+					case 0:
+							GameMap2->index[i] = 137;
+							break;
+					case BIT_01+BIT_02+INBIT:
+					case BIT_08+BIT_02:
+					case BIT_01+BIT_03+INBIT:
+					case BIT_08+BIT_03:
+							GameMap2->index[i] = 137+6;
+							GameMap2->hdraw[i]++;
+							break;
+					case BIT_02+BIT_03+INBIT:
+							GameMap2->index[i] = 137+1;
+							break;
+					case BIT_03+BIT_04+INBIT:
+					case BIT_02+BIT_04+INBIT:
+					case BIT_03+BIT_05+INBIT:
+					case BIT_02+BIT_05+INBIT:
+							GameMap2->index[i] = 137+5;
+							break;
+					case BIT_04+BIT_05+INBIT:
+							GameMap2->index[i] = 137+3;
+							break;
+					case BIT_05+BIT_06+INBIT:
+					case BIT_04+BIT_06+INBIT:
+					case BIT_05+BIT_07+INBIT:
+					case BIT_04+BIT_07+INBIT:
+							GameMap2->index[i] = 137+7;
+							break;
+					case BIT_06+BIT_07+INBIT:
+							// KWKL
+							GameMap2->index[i] = 137+2;
+							break;
+					case BIT_07+BIT_08+INBIT:
+					case BIT_06+BIT_08+INBIT:
+					case BIT_07+BIT_01:
+					case BIT_06+BIT_01:
+							GameMap2->index[i] = 137+8;
+							GameMap2->hdraw[i]++;
+							break;
+					case BIT_08+BIT_01:
+							GameMap2->index[i] = 137+4;
+							GameMap2->hdraw[i]++;
+							break;
+					//Die Dreier Cases V
+					case BIT_01+BIT_05+INBIT:
+					case BIT_01+BIT_04+INBIT:
+					case BIT_08+BIT_04:
+					case BIT_08+BIT_05:
+							//KLKL_
+							GameMap2->index[i] = 57+14;
+							GameMap2->hdraw[i]++;
+							break;
+
+					case BIT_03+BIT_06+INBIT:
+					case BIT_07+BIT_03+INBIT:
+					case BIT_02+BIT_06+INBIT:
+							//L_KLK
+							GameMap2->index[i] = 57+7;
+							//GameMap2->hdraw[i]++;
+							break;
+					case BIT_05+BIT_08+INBIT:
+					case BIT_04+BIT_08+INBIT:
+					case BIT_04+BIT_01:
+					case BIT_05+BIT_01:
+					//KL_KL
+							GameMap2->index[i] = 57+11;
+							GameMap2->hdraw[i]++;
+							break;
+					case BIT_02+BIT_07+INBIT:
+					case BIT_07+BIT_03:
+					case BIT_07+BIT_02:
+							//LK_LK
+							GameMap2->index[i] = 57+13 ;
+							GameMap2->hdraw[i]++;
+							break;
+					default:
+							GameMap2->index[i] = 1;
+							break;
+				}
+			//}
+		}
+		if (GameMap2->index[i] == 0 || GameMap2->index[i] == 1){
+		printf("Hightset: %i \n",GameMap2->height[i]);
+		printf("Interupt: %i %i %i %i %i %i %i %i = %i\n",NNO,NOO,OSO,SOS,SSW,SWW,WNW,NWN,(NNO?BIT_01:0)+(NOO?BIT_02:0)+(OSO?BIT_03:0)+(SOS?BIT_04:0)+(SSW?BIT_05:0)+(SWW?BIT_06:0)+(WNW?BIT_07:0)+(NWN?BIT_08:0));
+		printf("MapLoad for %i Tile: %s %i %s\n",i,KRED,GameMap2->index[i],KNORMAL);
+		}
+	}
+	GameMap2->width = input->width;
+	GameMap2->mapsize = input->width*input->height;
+	return true;
 }
 
 bool renderTileMaptoScreen(){
 	int i;
 	int x = 0;
 	int y = 0;
-	for(i=0;i< tilemap->am;i++){
-		bindsurface(gMapSurface, tilemap->tile[i]->surface, x, y, 0, 0, tilemap->tile[i]->w, tilemap->tile[i]->h);
-		//printf("Placed by: %i,%i\n",x,y);
-		x += tilemap->tile[i]->w;
+	for(i=0;i< tilemap2->am;i++){
+		SDL_Rect DestR;
+		DestR.x = x;
+		DestR.y = y;
+		SDL_RenderCopy(render, tilemap2->tile[GameMap->index[i]]->texture, NULL, &DestR);
+		x += tilemap2->tile[i]->w;
 		if(x > SCREEN_WIDTH){
 			x = 0;
 			y += 64;
@@ -165,21 +235,61 @@ bool renderMap(int view_x, int view_y){
 		int i;
 		int x = 0;
 		int y = 0;
+		int comp_w = SCREEN_WIDTH, comp_h = SCREEN_HEIGHT;
 		int posx,posy;
-		int *w = (int *) malloc(sizeof(int));
-		int *mapsize = (int *) malloc(sizeof(int));
-
-		loadMap("map.bmp",mapsize,w);
+		if(GAME_ZOOM < 0){
+			comp_w-=GAME_ZOOM*4;
+			comp_h-=GAME_ZOOM*2;
+		}
+		//SDL_SetRenderDrawBlendMode(render,SDL_BLENDMODE_ADD);
 		for (i=0; i < *mapsize;i++){
 				posy = i/ *w;
 				posx = i -(i/ *w)* *w ;
-				x = (posx - posy) * TILE_WIDTH/2+view_x;
-				y = (posx + posy) * TILE_HEIGHT/2+view_y;
-				if(x < SCREEN_WIDTH && y <SCREEN_HEIGHT && y > -32 && x > -64){
-					bindsurface(gMapSurface, tilemap->tile[GameMap->index[i]]->surface, x, y, 0, 0, tilemap->tile[GameMap->index[i]]->w, tilemap->tile[GameMap->index[i]]->h);
+				x = (posx - posy) * (TILE_WIDTH-GAME_ZOOM*4)/2+view_x;
+				y = (posx + posy) * (TILE_HEIGHT-GAME_ZOOM*2)/2+view_y;
+				if(x < SCREEN_WIDTH && y <SCREEN_HEIGHT && y > -comp_w && x > -comp_h){
+					SDL_Rect DestR;
+			    DestR.x = x;
+			    DestR.y = y;
+					DestR.h = tilemap2->tile[GameMap->index[i]]->h-GAME_ZOOM*2;
+			    DestR.w = tilemap2->tile[GameMap->index[i]]->w-GAME_ZOOM*4;
+					SDL_SetTextureBlendMode(tilemap2->tile[GameMap->index[i]]->texture,SDL_BLENDMODE_ADD);
+					SDL_RenderCopy(render, tilemap2->tile[GameMap->index[i]]->texture, NULL, &DestR); // Copy the texture into render
+					//printf("Tile: %i, placed @%i|%i \n",GameMap->index[i],x,y);
 				}
-			//58 Standard Grass
+		}
+		return true;
+}
 
+bool renderMap2(int view_x, int view_y){
+		int i;
+		int x = 0;
+		int y = 0;
+		int comp_w = SCREEN_WIDTH, comp_h = SCREEN_HEIGHT;
+		int posx,posy;
+		if(GAME_ZOOM < 0){
+			comp_w-=GAME_ZOOM*4;
+			comp_h-=GAME_ZOOM*2;
+		}
+		//SDL_SetRenderDrawBlendMode(render,SDL_BLENDMODE_ADD);
+
+		for (i=0; i < GameMap2->mapsize;i++){
+			//printf("Debug %i\n",GameMap2->mapsize);
+				posy = i/ GameMap2->width;
+				posx = i -(i/ GameMap2->width)* GameMap2->width ;
+				x = (posx - posy) * (TILE_WIDTH-GAME_ZOOM*4)/2+view_x;
+				y = (posx + posy) * (TILE_HEIGHT-GAME_ZOOM*2)/2+view_y;
+				//printf("Debug2 %i | %i | %i \n",GameMap2->mapsize,GameMap2->height[i],GameMap2->index[i]);
+				if(x < SCREEN_WIDTH && y <SCREEN_HEIGHT && y > -comp_w && x > -comp_h){
+					SDL_Rect DestR;
+			    DestR.x = x;
+			    DestR.y = y-(GameMap2->hdraw[i]*8);
+					DestR.h = tilemap2->tile[GameMap2->index[i]]->h-GAME_ZOOM*2;
+			    DestR.w = tilemap2->tile[GameMap2->index[i]]->w-GAME_ZOOM*4;
+					SDL_SetTextureBlendMode(tilemap2->tile[GameMap2->index[i]]->texture,SDL_BLENDMODE_ADD);
+					SDL_RenderCopy(render, tilemap2->tile[GameMap2->index[i]]->texture, NULL, &DestR); // Copy the texture into render
+					//printf("Tile: %i, placed @%i|%i \n",GameMap2->index[i],x,y);
+				}
 		}
 		return true;
 }
@@ -187,23 +297,23 @@ bool renderMap(int view_x, int view_y){
 bool moveMap(int x,int y){
 	GAME_X += x;
 	GAME_Y += y;
-	SDL_FillRect(gMapSurface, NULL, 0x000000);
-	renderMap(GAME_X,GAME_Y);
+	SDL_RenderClear(render);
+	renderMap2(GAME_X,GAME_Y);
+	SDL_RenderPresent(render);
 	return true;
 }
 
 void close() {
-	//Deallocate surface
-	SDL_FreeSurface( gHelloWorld );
-	gHelloWorld = NULL;
-	SDL_FreeSurface( gMapSurface );
-	gMapSurface = NULL;
 	//Destroy window
 	SDL_DestroyWindow( gWindow );
 	gWindow = NULL;
+	SDL_DestroyRenderer(render);
+	render = NULL;
 	//Quit SDL subsystems
 	SDL_Quit();
 }
+
+
 
 int main( int argc, char* args[] )
 {
@@ -220,11 +330,11 @@ int main( int argc, char* args[] )
 		{
 			printf( "Failed to load media!\n" );
 	 	} else {
-			renderMap(0,0);
+			//loadMap("map.bmp",mapsize,w);
+			load_highMap("highmap.bmp");
+			renderMap2(0,0);
+			SDL_RenderPresent(render);
 			while(!Lexit){
-				SDL_UpdateWindowSurface( gWindow );
-				//moveMap(300,100);
-
 				while( SDL_PollEvent( &e ) != 0 ) {
 					//User requests quit
 					if( e.type == SDL_QUIT ) {
@@ -234,30 +344,45 @@ int main( int argc, char* args[] )
 					else if( e.type == SDL_KEYDOWN ) {
 							switch( e.key.keysym.sym ) {
 								 	case SDLK_UP:
-									  moveMap(0,15);
+									  moveMap(0,25);
 										//printf("UP pressed \n");
 										break;
 									case SDLK_DOWN:
 										//printf("DOWN pressed \n");
-										moveMap(0,-15);
+										moveMap(0,-25);
 										break;
 									case SDLK_LEFT:
 										//printf("LEFT pressed \n");
-									 	moveMap(15,0);
+									 	moveMap(25,0);
 										break;
 									case SDLK_RIGHT:
 										//printf("RIGHT pressed \n");
-									 	moveMap(-15,0);
+									 	moveMap(-25,0);
 										break;
 									case SDLK_ESCAPE:
 										//printf("ESC pressed \n");
 										Lexit = true;
 										break;
+									case SDLK_PLUS:
+										//printf("RIGHT pressed \n");
+										if (GAME_ZOOM > -32){
+											GAME_ZOOM--;
+										}
+										moveMap((TILE_WIDTH-GAME_ZOOM*4)/2,-(TILE_HEIGHT-GAME_ZOOM*2)/2);
+										break;
+									case SDLK_MINUS:
+										//printf("RIGHT pressed \n");
+										if (GAME_ZOOM < 8){
+											GAME_ZOOM++;
+										}
+										moveMap(-(TILE_WIDTH-GAME_ZOOM*4)/2,(TILE_HEIGHT-GAME_ZOOM*2)/2);
+										break;
 									default:
 										break;
 							}
 							//SDL_Delay( 20);
-							SDL_UpdateWindowSurface( gWindow );
+							 // Show render on window
+							//SDL_UpdateWindowSurface( gWindow );
 						}
 					}
 				}
