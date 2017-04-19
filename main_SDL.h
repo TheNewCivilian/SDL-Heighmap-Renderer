@@ -27,6 +27,7 @@ typedef struct _heighmap{
   int *height;
   int *hdraw;
   int mapsize;
+  int mheight;
   int width;
 }Heightmap;
 
@@ -38,8 +39,8 @@ bool loadMedia();
 void close();
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 1080;
-const int SCREEN_HEIGHT = 1200;
+const int SCREEN_WIDTH = 1924;
+const int SCREEN_HEIGHT = 1600;
 
 const int TILE_WIDTH = 64;
 const int TILE_HEIGHT = 32;
