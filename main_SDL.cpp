@@ -37,7 +37,7 @@ bool loadMap(const char *filepath,int *mapsize,int *with){
       printf("Fehler beim Laden");
       return 0;
   }
-	GameMap = (Map *) malloc(input->width*input->height*sizeof(Map));
+	GameMap = (Map *) malloc(sizeof(Map));
 	GameMap->index = (int *) malloc((input->width*input->height)*sizeof(int));
 	for(i = 0; i < input->width*input->height;i++){
 		if(input->pixel[i].red*255*2+input->pixel[i].green*255+input->pixel[i].blue < 222){
@@ -351,7 +351,7 @@ bool load_highMap(const char *filepath){
       printf("Fehler beim Laden");
       return false;
   }
-	GameMap2 = (Heightmap *) malloc(input->width*input->height*sizeof(Heightmap));
+	GameMap2 = (Heightmap *) malloc(sizeof(Heightmap));
 	GameMap2->height = (int *) malloc((input->width*input->height)*sizeof(int));
 	GameMap2->index = (int *) malloc((input->width*input->height)*sizeof(int));
 	GameMap2->hdraw = (int *) malloc((input->width*input->height)*sizeof(int));
@@ -515,7 +515,7 @@ int main( int argc, char* args[] )
 			printf( "Failed to load media!\n" );
 	 	} else {
 			//loadMap("map.bmp",mapsize,w);
-			load_highMap("TestEurope.bmp");
+			load_highMap("Megatest.bmp");
 			SDL_RenderClear(render);
 			renderMap2(0,0);
 			SDL_RenderPresent(render);
