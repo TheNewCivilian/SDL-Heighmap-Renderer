@@ -1,7 +1,7 @@
 #ifndef RENDERER_MAIN_H
 #define RENDERER_MAIN_H
 
-#include "SDL_main.h"
+#include "game_sdl.h"
 
 class RENDERER{
   public:

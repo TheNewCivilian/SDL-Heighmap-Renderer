@@ -1,6 +1,6 @@
 
 #OBJS specifies which files to compile as part of the project
-OBJS = SDL_main.cpp map_main.cpp renderer_main.cpp ./bmpLoader/bitmap.c ./bmpLoader/bittypes.c BMP_Loader.c
+OBJS = main.cpp game_sdl.cpp map_main.cpp renderer_main.cpp ./bmpLoader/bitmap.c ./bmpLoader/bittypes.c BMP_Loader.c
 #02_getting_an_image_on_the_screen.cpp
 #01_hello_SDL.cpp
 

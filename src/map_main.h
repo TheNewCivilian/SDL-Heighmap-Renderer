@@ -13,16 +13,16 @@ typedef struct _heighmap{
   int mapsize;
   int mheight;
   int width;
-}Heightmap;
+} Heightmap;
 
 class MAP_GEN{
-public:
+  public:
     Heightmap *GameMap2;
-    
-public:
+
+  public:
     bool load_highMap(const char *filepath);
     Heightmap *getGameMap();
-protected:
+  protected:
     bool checkmap(int hight);
 };
 
