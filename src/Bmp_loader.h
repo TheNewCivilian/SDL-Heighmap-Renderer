@@ -2,6 +2,11 @@
 #define BMP_LOADER_H
 
 #include <SDL2/SDL.h>
+#include "./bmpLoader/bitmap.h"
+#include "./bmpLoader/bittypes.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 typedef struct _tile{
   SDL_Surface *surface;
@@ -26,7 +31,6 @@ typedef struct _tilemap2{
 }Tilemap2;
 
 
-SDL_Surface *load_bmp_to_sdl(const char* filepath);
 void set_pixel(SDL_Surface *surface, int x, int y, Uint32 pixel);
 long load_tile_to_sdl_surface(SDL_Surface *surface,const char* filepath,long offset,int num,int *with,int *heigt);
 long load_tile_to_sdl_texture(SDL_Texture *texture,SDL_Renderer *renderer,const char* filepath,long offset,int num,int *with,int *heigt);

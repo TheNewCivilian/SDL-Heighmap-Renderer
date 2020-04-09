@@ -1,6 +1,6 @@
 
 #OBJS specifies which files to compile as part of the project
-OBJS = SDL_main.cpp map_main.cpp renderer_main.cpp bitmap.c bittypes.c BMP_Loader.c
+OBJS = SDL_main.cpp map_main.cpp renderer_main.cpp ./bmpLoader/bitmap.c ./bmpLoader/bittypes.c BMP_Loader.c
 #02_getting_an_image_on_the_screen.cpp
 #01_hello_SDL.cpp
 
@@ -15,7 +15,7 @@ COMPILER_FLAGS = -w
 LINKER_FLAGS = -lSDL2
 
 #OBJ_NAME specifies the name of our exectuable
-OBJ_NAME = a.out
+OBJ_NAME = HigthmapRenderer.out
 
 #This is the target that compiles our executable
 all : $(OBJS)

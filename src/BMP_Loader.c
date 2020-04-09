@@ -1,51 +1,9 @@
 #include "Bmp_loader.h"
-#include "bitmap.h"
-#include "bittypes.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdio.h>
 
 void set_pixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
 {
 	Uint32 *target_pixel = (Uint32 *) (surface->pixels + y * surface->pitch + x * sizeof(*target_pixel));
-	//printf("Size: %i",sizeof(*target_pixel));
 	*target_pixel = pixel;
-}
-
-SDL_Surface *load_bmp_to_sdl(const char* filepath){
-  //Testload
-  SDL_Surface *RGBpixelmap = NULL;
-  int i; //Laufvariable
-  int x,y;
-  int deb;
-  Uint8 r = 20,g = 20,b = 10;
-  bitmapRGB *input = (bitmapRGB *) malloc(sizeof(bitmapRGB));
-  SDL_PixelFormat *fmt;
-
-  deb = loadBitmapRGB(filepath, input);
-  if (deb != BMP_OK) {
-      printf("Fehler beim Laden");
-      return NULL;
-  }
-  RGBpixelmap = SDL_CreateRGBSurface(0,input->width,input->height,32,0,0,0,0); //SDL_CreateRGBSurface(Uint32 flags,int    width,int    height,int    depth,Uint32 Rmask,Uint32 Gmask,Uint32 Bmask,Uint32 Amask)
-  if( RGBpixelmap == NULL ) {
-    printf( "Unable to load image %s! SDL Error: %s\n", "hello_world.bmp", SDL_GetError() );
-    return NULL;
-  }
-  fmt=RGBpixelmap->format;
-  SDL_LockSurface(RGBpixelmap);
-  for(i = 0; i<input->width*input->height;i++){
-    r = input->pixel[i].red;
-    g = input->pixel[i].green;
-    b = input->pixel[i].blue;
-    y = i/input->width;
-    x = i-((y)*input->width);
-    set_pixel(RGBpixelmap, x, y,  SDL_MapRGB(fmt,r,g,b));
-    //printf("Pixel[%5i][%5i][%5i] r=%i b=%i g=%i\n",i,x,y,r,b,g);
-  }
-  SDL_UnlockSurface(RGBpixelmap);
-  return RGBpixelmap;
-
 }
 
 long load_tile_to_sdl_surface(SDL_Surface *surface,const char* filepath,long offset,int num,int *with,int *heigt){

@@ -1,10 +1,10 @@
 #ifndef MAP_MAIN_H
 #define MAP_MAIN_H
 
-#include "bitmap.h"
-#include "bittypes.h"
+#include "./bmpLoader/bitmap.h"
+#include "./bmpLoader/bittypes.h"
 #include "Bmp_loader.h"
-#include "debug_color.h"
+#include "./helpers/debug_color.h"
 
 typedef struct _heighmap{
   int *index;

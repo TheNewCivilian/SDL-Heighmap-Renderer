@@ -23,8 +23,6 @@ bool MAP_GEN::load_highMap(const char *filepath){
 	}
 
 	checkmap(255%(prez-1));
-	//Map Debuging!
-	//printMap2Console();
 	return true;
 }
 
